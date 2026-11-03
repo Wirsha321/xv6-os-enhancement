@@ -42,4 +42,15 @@ entry("getpid");
 entry("sbrk");
 entry("pause");
 entry("uptime");
+entry("setpriority");
+entry("getpriority");
+entry("getprocinfo");
+entry("getcputicks");
+entry("getsleepstats");
+entry("settickets");
+entry("setschedpolicy");
+entry("getsyscallcount");
+entry("getmeminfo");
 entry("sync");
+
+entry("getproctree");

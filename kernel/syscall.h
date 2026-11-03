@@ -21,3 +21,16 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_sync   22
+#define SYS_setpriority 23
+
+#define SYS_getpriority 24
+
+#define SYS_getprocinfo 25
+
+#define SYS_getcputicks 26
+#define SYS_getsleepstats 27
+#define SYS_settickets 28
+#define SYS_setschedpolicy 29
+#define SYS_getsyscallcount 30
+#define SYS_getmeminfo 31
+#define SYS_getproctree 32

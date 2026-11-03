@@ -151,6 +151,20 @@ UPROGS=\
 	$U/_forphan\
 	$U/_dorphan\
 	$U/_sync\
+        $U/_cputicks\
+        $U/_getprio\
+        $U/_prio\
+        $U/_schedtest\
+        $U/_lotterytest\
+        $U/_schedperf\
+        $U/_procinfo\
+        $U/_memtest\
+        $U/_sysctest\
+        $U/_proctree\
+        $U/_sleepmultitest\
+        $U/_sleepstats\
+        $U/_sleepstatstest\
+        $U/_sleepadvanced\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
