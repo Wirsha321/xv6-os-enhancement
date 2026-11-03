@@ -701,3 +701,33 @@ procdump(void)
     printk("\n");
   }
 }
+int
+getproctree(struct pinfo *infos, int max)
+{
+  struct proc *p, *parent;
+  int count = 0;
+
+  acquire(&wait_lock);
+  for(p = proc; p < &proc[NPROC] && count < max; p++) {
+    acquire(&p->lock);
+    if(p->state == UNUSED) {
+      release(&p->lock);
+      continue;
+    }
+    infos[count].pid = p->pid;
+    infos[count].state = p->state;
+    memmove(infos[count].name, p->name, sizeof(infos[count].name));
+    parent = p->parent;
+    release(&p->lock);
+
+    infos[count].ppid = 0;
+    if(parent != 0) {
+      acquire(&parent->lock);
+      infos[count].ppid = parent->pid;
+      release(&parent->lock);
+    }
+    count++;
+  }
+  release(&wait_lock);
+  return count;
+}

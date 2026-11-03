@@ -110,3 +110,25 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_getproctree(void)
+{
+  uint64 addr;
+  int max, count;
+  struct pinfo infos[NPROC];
+  struct proc *p = myproc();
+
+  argaddr(0, &addr);
+  argint(1, &max);
+  if(max <= 0)
+    return -1;
+  if(max > NPROC)
+    max = NPROC;
+
+  count = getproctree(infos, max);
+  if(copyout(p->pagetable, p->sz, addr,
+             (char *)infos, count * sizeof(struct pinfo)) < 0)
+    return -1;
+  return count;
+}

@@ -2,6 +2,30 @@
 
 struct stat;
 
+
+struct sleepstats {
+  int sleeps;
+  int wakeups;
+};
+
+struct meminfo {
+  uint64 process_mem;
+  uint64 free_mem;
+};
+
+struct pinfo {
+  int pid;
+  int ppid;
+  int state;
+  char name[16];
+};
+
+
+struct procinfo {
+  int pid;
+  int priority;
+};
+
 // system calls
 int fork(void);
 int exit(int) __attribute__((noreturn));
@@ -51,7 +75,12 @@ void free(void *);
 
 int getcputicks(void);
 int getpriority(void);
+int getprocinfo(struct procinfo *);
 int setpriority(int);
 int setschedpolicy(int);
 int getsyscallcount(void);
 int settickets(int);
+
+int getsleepstats(struct sleepstats *);
+int getmeminfo(struct meminfo *);
+int getproctree(struct pinfo *, int);

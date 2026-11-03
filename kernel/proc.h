@@ -76,6 +76,13 @@ struct trapframe {
   /* 280 */ uint64 t6;
 };
 
+struct pinfo {
+  int pid;
+  int ppid;
+  int state;
+  char name[16];
+};
+
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
