@@ -1,3 +1,4 @@
+struct pinfo;
 // clang-format off
 struct buf;
 struct context;
@@ -184,3 +185,5 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
+
+int getproctree(struct pinfo *, int);
