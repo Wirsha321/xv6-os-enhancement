@@ -76,6 +76,7 @@ void free(void *);
 int getcputicks(void);
 int getpriority(void);
 int getprocinfo(struct procinfo *);
+
 int setpriority(int);
 int setschedpolicy(int);
 int getsyscallcount(void);

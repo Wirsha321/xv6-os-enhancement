@@ -166,6 +166,12 @@ kerneltrap()
 void
 clockintr()
 {
+  struct proc *p = myproc();
+  if (p != 0) {
+    acquire(&p->lock);
+    p->cputicks++;
+    release(&p->lock);
+  }
   if (cpuid() == 0) {
     acquire(&tickslock);
     ticks++;

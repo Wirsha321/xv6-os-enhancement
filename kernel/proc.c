@@ -13,6 +13,17 @@ struct proc proc[NPROC];
 struct proc *initproc;
 
 int nextpid = 1;
+int schedpolicy = 0;
+static uint randstate = 123456789;
+struct spinlock sched_lock;
+
+static uint
+random_next(void)
+{
+  randstate = randstate * 1664525 + 1013904223;
+  return randstate;
+}
+
 struct spinlock pid_lock;
 
 extern void forkret(void);
@@ -50,6 +61,7 @@ procinit(void)
   struct proc *p;
 
   initlock(&pid_lock, "nextpid");
+  initlock(&sched_lock, "sched_lock");
   initlock(&wait_lock, "wait_lock");
   for (p = proc; p < &proc[NPROC]; p++) {
     initlock(&p->lock, "proc");
@@ -124,6 +136,12 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+  p->priority = 50;
+  p->tickets = 10;
+  p->cputicks = 0;
+  p->sleeps = 0;
+  p->wakeups = 0;
+  p->syscall_count = 0;
 
   // Allocate a trapframe page.
   if ((p->trapframe = (struct trapframe *)kalloc()) == 0) {
@@ -167,6 +185,12 @@ freeproc(struct proc *p)
   p->chan = 0;
   p->killed = 0;
   p->xstate = 0;
+  p->priority = 0;
+  p->tickets = 0;
+  p->cputicks = 0;
+  p->sleeps = 0;
+  p->wakeups = 0;
+  p->syscall_count = 0;
   p->state = UNUSED;
 }
 
@@ -274,6 +298,8 @@ kfork(void)
     return -1;
   }
   np->sz = p->sz;
+  np->priority = p->priority;
+  np->tickets = p->tickets;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
@@ -429,41 +455,76 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *chosen;
   struct cpu *c = mycpu();
 
   c->proc = 0;
   for (;;) {
-    // The most recent process to run may have had interrupts
-    // turned off; enable them to avoid a deadlock if all
-    // processes are waiting. Then turn them back off
-    // to avoid a possible race between an interrupt
-    // and wfi.
     intr_on();
     intr_off();
 
-    int found = 0;
-    for (p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      if (p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
+    chosen = 0;
+    acquire(&sched_lock);
 
-        // Don't re-enable interrupts on release.
-        mycpu()->intena = 0;
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-        found = 1;
+    if (schedpolicy == 1) {
+      // Lottery scheduling: calculate total tickets.
+      uint64 total = 0;
+      for (p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if (p->state == RUNNABLE && p->tickets > 0)
+          total += p->tickets;
+        release(&p->lock);
       }
-      release(&p->lock);
+
+      // Select one runnable process using a ticket.
+      if (total > 0) {
+        uint64 winner = random_next() % total;
+        for (p = proc; p < &proc[NPROC]; p++) {
+          acquire(&p->lock);
+          if (p->state == RUNNABLE && p->tickets > 0) {
+            if (winner < (uint64)p->tickets) {
+              chosen = p;
+              break;
+            }
+            winner -= p->tickets;
+          }
+          release(&p->lock);
+        }
+      }
+    } else {
+      // Priority scheduling: lower number means higher priority.
+      int bestpriority = 0x7fffffff;
+      for (p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if (p->state == RUNNABLE && p->priority < bestpriority) {
+          bestpriority = p->priority;
+          chosen = p;
+        }
+        release(&p->lock);
+      }
+
+      // Reacquire the selected process lock before running it.
+      if (chosen != 0) {
+        acquire(&chosen->lock);
+        if (chosen->state != RUNNABLE) {
+          release(&chosen->lock);
+          chosen = 0;
+        }
+      }
     }
-    if (found == 0) {
-      // nothing to run; stop running on this core until an interrupt.
+
+    if (chosen != 0) {
+      chosen->state = RUNNING;
+      c->proc = chosen;
+    }
+    release(&sched_lock);
+
+    if (chosen != 0) {
+      swtch(&c->context, &chosen->context);
+      mycpu()->intena = 0;
+      c->proc = 0;
+      release(&chosen->lock);
+    } else {
       asm volatile("wfi");
     }
   }
@@ -565,6 +626,7 @@ sleep(void)
 
   acquire(&p->lock);
   if (p->chan != 0) {
+    p->sleeps++;
     p->state = SLEEPING;
     sched();
   }
@@ -587,6 +649,7 @@ wakeup(void *chan)
       // If this waiting process has gotten so far as to actually
       // go to sleep, also set it back to RUNNING.
       if (p->state == SLEEPING) {
+        p->wakeups++;
         p->state = RUNNABLE;
       }
     }

@@ -132,3 +132,170 @@ sys_getproctree(void)
     return -1;
   return count;
 }
+
+extern int schedpolicy;
+extern struct spinlock sched_lock;
+
+uint64
+sys_setschedpolicy(void)
+{
+  int policy;
+
+  argint(0, &policy);
+
+  if(policy != 0 && policy != 1)
+    return -1;
+
+  acquire(&sched_lock);
+  schedpolicy = policy;
+  release(&sched_lock);
+
+  return 0;
+}
+
+uint64
+sys_setpriority(void)
+{
+  int priority;
+  argint(0, &priority);
+
+  if(priority < 0 || priority > 100)
+    return -1;
+
+  struct proc *p = myproc();
+  acquire(&p->lock);
+  p->priority = priority;
+  release(&p->lock);
+
+  return 0;
+}
+
+uint64
+sys_getpriority(void)
+{
+  struct proc *p = myproc();
+  int priority;
+
+  acquire(&p->lock);
+  priority = p->priority;
+  release(&p->lock);
+
+  return priority;
+}
+
+uint64
+sys_settickets(void)
+{
+  int tickets;
+  argint(0, &tickets);
+
+  if(tickets <= 0)
+    return -1;
+
+  struct proc *p = myproc();
+  acquire(&p->lock);
+  p->tickets = tickets;
+  release(&p->lock);
+
+  return 0;
+}
+
+uint64
+sys_getcputicks(void)
+{
+  struct proc *p = myproc();
+  uint64 count;
+
+  acquire(&p->lock);
+  count = p->cputicks;
+  release(&p->lock);
+
+  return count;
+}
+
+
+// Return sleep and wakeup statistics for the current process.
+uint64
+sys_getsleepstats(void)
+{
+  uint64 addr;
+  struct proc *p = myproc();
+  struct {
+    int sleeps;
+    int wakeups;
+  } stats;
+
+  argaddr(0, &addr);
+
+  acquire(&p->lock);
+  stats.sleeps = p->sleeps;
+  stats.wakeups = p->wakeups;
+  release(&p->lock);
+
+  if(copyout(p->pagetable, p->sz, addr,
+             (char *)&stats, sizeof(stats)) < 0)
+    return -1;
+
+  return 0;
+}
+
+
+// Return memory statistics for the current process.
+uint64
+sys_getmeminfo(void)
+{
+  uint64 addr;
+  struct proc *p = myproc();
+  struct {
+    uint64 process_mem;
+    uint64 free_mem;
+  } info;
+
+  argaddr(0, &addr);
+
+  acquire(&p->lock);
+  info.process_mem = p->sz;
+  release(&p->lock);
+
+  info.free_mem = freemem();
+
+  if(copyout(p->pagetable, p->sz, addr,
+             (char *)&info, sizeof(info)) < 0)
+    return -1;
+
+  return 0;
+}
+
+
+// Return process information for the current process.
+uint64
+sys_getprocinfo(void)
+{
+  uint64 addr;
+  struct proc *p = myproc();
+  struct {
+    int pid;
+    int priority;
+  } info;
+
+  argaddr(0, &addr);
+
+  acquire(&p->lock);
+  info.pid = p->pid;
+  info.priority = p->priority;
+  release(&p->lock);
+
+  if(copyout(p->pagetable, p->sz, addr,
+             (char *)&info, sizeof(info)) < 0)
+    return -1;
+
+  return 0;
+}
+
+// Return the system call count for the current process.
+uint64
+sys_getsyscallcount(void)
+{
+  struct proc *p = myproc();
+  return p->syscall_count;
+}

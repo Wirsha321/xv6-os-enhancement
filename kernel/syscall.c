@@ -105,7 +105,16 @@ extern uint64 sys_close(void);
 extern uint64 sys_sync(void);
 
 extern uint64 sys_getproctree(void);
+extern uint64 sys_setschedpolicy(void);
 
+extern uint64 sys_setpriority(void);
+extern uint64 sys_getpriority(void);
+extern uint64 sys_settickets(void);
+extern uint64 sys_getcputicks(void);
+extern uint64 sys_getsleepstats(void);
+extern uint64 sys_getprocinfo(void);
+extern uint64 sys_getsyscallcount(void);
+extern uint64 sys_getmeminfo(void);
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
@@ -133,6 +142,15 @@ static uint64 (*syscalls[])(void) = {
   [SYS_close]   = sys_close,
   [SYS_sync]    = sys_sync,
   [SYS_getproctree] = sys_getproctree,
+  [SYS_setschedpolicy] = sys_setschedpolicy,
+  [SYS_setpriority] = sys_setpriority,
+  [SYS_getpriority] = sys_getpriority,
+  [SYS_settickets] = sys_settickets,
+  [SYS_getcputicks] = sys_getcputicks,
+  [SYS_getsleepstats] = sys_getsleepstats,
+  [SYS_getprocinfo] = sys_getprocinfo,
+  [SYS_getsyscallcount] = sys_getsyscallcount,
+  [SYS_getmeminfo] = sys_getmeminfo,
   // clang-format on
 };
 
@@ -144,6 +162,7 @@ syscall(void)
 
   num = p->trapframe->a7;
   if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+    p->syscall_count++;
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
     p->trapframe->a0 = syscalls[num]();
