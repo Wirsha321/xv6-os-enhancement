@@ -1,36 +1,178 @@
 # Enhanced xv6-RISC-V Operating System
 
-**Developed by: Wirsha**
+<p align="center">
+  <strong>An enhanced educational operating system based on MIT xv6-RISC-V</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/OS-xv6--RISC--V-blue" />
+  <img src="https://img.shields.io/badge/Architecture-RISC--V-orange" />
+  <img src="https://img.shields.io/badge/Language-C-green" />
+  <img src="https://img.shields.io/badge/Project-Educational-purple" />
+</p>
+
+---
 
 ## Overview
-An enhanced xv6-RISC-V teaching operating system with additional scheduling, process management, system calls, and performance statistics.
 
-## Implemented Features
-1. Priority Scheduling
-2. Lottery Scheduling
-3. CPU Tick Tracking
-4. Process Information
-5. Memory Statistics
-6. System Call Counter
-7. Sleep/Wakeup Statistics
-8. Process Tree
-9. Disk Sync
-10. Advanced Sleep/Wakeup
+This project extends the original MIT xv6-RISC-V operating system with additional scheduling, process management, monitoring, and kernel functionality.
 
-## Requirements
-- RISC-V GNU Toolchain
+The purpose of this project is to explore operating system concepts through practical kernel development, system calls, process control, scheduling policies, and performance statistics.
+
+## Features
+
+### 1. Priority Scheduling
+Introduces process priorities to influence scheduling decisions and give processes different levels of execution preference.
+
+### 2. Lottery Scheduling
+Implements ticket-based scheduling, allowing processes to compete for CPU time according to their assigned tickets.
+
+### 3. CPU Tick Tracking
+Tracks CPU ticks consumed by processes to provide basic process execution statistics.
+
+### 4. Process Information
+Provides additional process information through enhanced process-management functionality.
+
+### 5. Memory Statistics
+Adds functionality for retrieving memory-related statistics and monitoring memory usage.
+
+### 6. System Call Counter
+Tracks system call activity to help observe interactions between user programs and the kernel.
+
+### 7. Sleep/Wakeup Statistics
+Maintains sleep and wakeup-related counters for process monitoring.
+
+### 8. Process Tree
+Provides functionality to inspect process relationships and parent-child structures.
+
+### 9. Disk Sync
+Adds a synchronization system call to support explicit synchronization operations.
+
+### 10. Advanced Sleep/Wakeup
+Extends sleep and wakeup functionality with additional process tracking and management capabilities.
+
+---
+
+## Technology Stack
+
+- **Operating System:** xv6-RISC-V
+- **Architecture:** RISC-V
+- **Programming Language:** C
+- **Assembly:** RISC-V Assembly
+- **Emulator:** QEMU
+- **Build System:** Make
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+Install the required development tools:
+
+- RISC-V GNU toolchain
 - QEMU for RISC-V
-- Ubuntu or WSL Ubuntu
+- Make
+- Git
 
-## Build and Run
-Run these commands:
-- make clean
-- make
-- make qemu
+### Clone the Repository
+
+```bash
+git clone https://github.com/Wirsha321/xv6-os-enhancement.git
+cd xv6-os-enhancement
+```
+
+### Build the Operating System
+
+```bash
+make clean
+make
+```
+
+### Run xv6
+
+```bash
+make qemu
+```
+
+QEMU will start and boot the xv6 operating system.
+
+---
 
 ## Testing
-The project builds successfully and has been tested in QEMU. Individual tests were performed for scheduling, process information, memory statistics, system call counting, and sleep/wakeup behavior.
 
-## Original Project Credits
-Based on the xv6-RISC-V educational operating system developed at MIT.
-Original repository: https://github.com/mit-pdos/xv6-riscv
+The added functionality can be evaluated using user-level programs and kernel tests.
+
+Testing areas include:
+
+- Priority-based scheduling behavior
+- Lottery scheduling behavior
+- CPU tick tracking
+- Process information retrieval
+- Memory statistics
+- System call counting
+- Sleep/wakeup counters
+- Process tree inspection
+- Disk synchronization system call
+- Sleep/wakeup functionality
+
+Build the project before testing to verify kernel and user-program integration.
+
+---
+
+## Project Structure
+
+```text
+xv6-os-enhancement/
+├── kernel/
+│   ├── proc.c
+│   ├── proc.h
+│   ├── syscall.c
+│   ├── sysproc.c
+│   ├── trap.c
+│   └── kalloc.c
+├── user/
+│   ├── user.h
+│   └── ...
+├── Makefile
+└── README.md
+```
+
+---
+
+## Learning Objectives
+
+This project demonstrates practical understanding of:
+
+- Kernel development
+- Process scheduling algorithms
+- System call implementation
+- Process lifecycle and management
+- Memory management
+- CPU usage tracking
+- Synchronization
+- Kernel-user space communication
+
+---
+
+## Developer
+
+**Wirsha**
+
+Enhanced xv6-RISC-V Operating System project.
+
+---
+
+## Credits
+
+This project is based on the xv6 operating system developed by MIT.
+
+Original xv6 source and educational materials:
+
+https://github.com/mit-pdos/xv6-riscv
+
+---
+
+## License
+
+This project builds upon MIT xv6-RISC-V. Refer to the original xv6 repository for its license and attribution information.
